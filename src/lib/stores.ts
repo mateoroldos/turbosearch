@@ -33,6 +33,12 @@ export const DEFAULT_ENGINES: Engine[] = [
 		url: 'https://chat.openai.com/?q=%QUERY%',
 		shortcut: 'c',
 		categories: ['ai']
+	},
+	{
+		id: 'grepapp',
+		name: 'grep.app',
+		url: 'https://grep.app/search?q=%QUERY%',
+		categories: ['dev']
 	}
 ];
 
