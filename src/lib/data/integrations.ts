@@ -198,6 +198,346 @@ export const AVAILABLE_INTEGRATIONS = [
 		name: 'Behance',
 		url: 'https://www.behance.net/search?search=%QUERY%',
 		categories: ['design']
+	},
+
+	// Academic & Research
+	{
+		id: 'scholar',
+		name: 'Google Scholar',
+		url: 'https://scholar.google.com/scholar?q=%QUERY%',
+		categories: ['academic', 'research']
+	},
+	{
+		id: 'arxiv',
+		name: 'arXiv',
+		url: 'https://arxiv.org/search/?query=%QUERY%',
+		categories: ['academic', 'research']
+	},
+	{
+		id: 'pubmed',
+		name: 'PubMed',
+		url: 'https://pubmed.ncbi.nlm.nih.gov/?term=%QUERY%',
+		categories: ['academic', 'research', 'medical']
+	},
+
+	// Technical Documentation
+	{
+		id: 'readthedocs',
+		name: 'Read the Docs',
+		url: 'https://readthedocs.org/search/?q=%QUERY%',
+		categories: ['dev', 'docs']
+	},
+	{
+		id: 'docker',
+		name: 'Docker Hub',
+		url: 'https://hub.docker.com/search?q=%QUERY%',
+		categories: ['dev', 'docs']
+	},
+
+	// Learning Platforms
+	{
+		id: 'coursera',
+		name: 'Coursera',
+		url: 'https://www.coursera.org/search?query=%QUERY%',
+		categories: ['learning', 'education']
+	},
+	{
+		id: 'udemy',
+		name: 'Udemy',
+		url: 'https://www.udemy.com/courses/search/?q=%QUERY%',
+		categories: ['learning', 'education']
+	},
+	{
+		id: 'edx',
+		name: 'edX',
+		url: 'https://www.edx.org/search?q=%QUERY%',
+		categories: ['learning', 'education']
+	},
+
+	// More Shopping
+	{
+		id: 'ebay',
+		name: 'eBay',
+		url: 'https://www.ebay.com/sch/i.html?_nkw=%QUERY%',
+		categories: ['shopping']
+	},
+	{
+		id: 'aliexpress',
+		name: 'AliExpress',
+		url: 'https://www.aliexpress.com/wholesale?SearchText=%QUERY%',
+		categories: ['shopping']
+	},
+	{
+		id: 'etsy',
+		name: 'Etsy',
+		url: 'https://www.etsy.com/search?q=%QUERY%',
+		categories: ['shopping', 'crafts']
+	},
+
+	// More Entertainment
+	{
+		id: 'netflix',
+		name: 'Netflix',
+		url: 'https://www.netflix.com/search?q=%QUERY%',
+		categories: ['entertainment', 'video']
+	},
+	{
+		id: 'imdb',
+		name: 'IMDb',
+		url: 'https://www.imdb.com/find?q=%QUERY%',
+		categories: ['entertainment', 'video']
+	},
+	{
+		id: 'goodreads',
+		name: 'Goodreads',
+		url: 'https://www.goodreads.com/search?q=%QUERY%',
+		categories: ['entertainment', 'books']
+	},
+
+	// Image Search
+	{
+		id: 'unsplash',
+		name: 'Unsplash',
+		url: 'https://unsplash.com/s/photos/%QUERY%',
+		categories: ['images', 'design']
+	},
+	{
+		id: 'pexels',
+		name: 'Pexels',
+		url: 'https://www.pexels.com/search/%QUERY%',
+		categories: ['images', 'design']
+	},
+	{
+		id: 'pixabay',
+		name: 'Pixabay',
+		url: 'https://pixabay.com/images/search/%QUERY%',
+		categories: ['images', 'design']
+	},
+
+	// Professional Development
+	{
+		id: 'glassdoor',
+		name: 'Glassdoor',
+		url: 'https://www.glassdoor.com/Search/results.htm?keyword=%QUERY%',
+		categories: ['jobs', 'professional']
+	},
+	{
+		id: 'indeed',
+		name: 'Indeed',
+		url: 'https://www.indeed.com/jobs?q=%QUERY%',
+		categories: ['jobs', 'professional']
+	},
+
+	// More Development
+	{
+		id: 'gitlab',
+		name: 'GitLab',
+		url: 'https://gitlab.com/search?search=%QUERY%',
+		categories: ['dev']
+	},
+	{
+		id: 'codepen',
+		name: 'CodePen',
+		url: 'https://codepen.io/search/pens?q=%QUERY%',
+		categories: ['dev', 'design']
+	},
+
+	// Reference
+	{
+		id: 'wikipedia',
+		name: 'Wikipedia',
+		url: 'https://en.wikipedia.org/w/index.php?search=%QUERY%',
+		categories: ['reference', 'education']
+	},
+	{
+		id: 'wolframalpha',
+		name: 'Wolfram Alpha',
+		url: 'https://www.wolframalpha.com/input?i=%QUERY%',
+		categories: ['reference', 'education', 'science']
+	},
+
+	// Maps & Location
+	{
+		id: 'googlemaps',
+		name: 'Google Maps',
+		url: 'https://www.google.com/maps/search/%QUERY%',
+		categories: ['maps', 'travel']
+	},
+	{
+		id: 'openstreetmap',
+		name: 'OpenStreetMap',
+		url: 'https://www.openstreetmap.org/search?query=%QUERY%',
+		categories: ['maps', 'travel']
+	},
+
+	// Translation
+	{
+		id: 'translate',
+		name: 'Google Translate',
+		url: 'https://translate.google.com/?text=%QUERY%',
+		categories: ['translation', 'language']
+	},
+	{
+		id: 'deepl',
+		name: 'DeepL',
+		url: 'https://www.deepl.com/translator#en/es/%QUERY%',
+		categories: ['translation', 'language']
+	},
+
+	// Tech News
+	{
+		id: 'techcrunch',
+		name: 'TechCrunch',
+		url: 'https://search.techcrunch.com/search;?p=%QUERY%',
+		categories: ['news', 'tech']
+	},
+	{
+		id: 'theverge',
+		name: 'The Verge',
+		url: 'https://www.theverge.com/search?q=%QUERY%',
+		categories: ['news', 'tech']
+	},
+
+	// Finance - Traditional
+	{
+		id: 'yahoo-finance',
+		name: 'Yahoo Finance',
+		url: 'https://finance.yahoo.com/quote/%QUERY%',
+		categories: ['finance', 'stocks']
+	},
+	{
+		id: 'tradingview',
+		name: 'TradingView',
+		url: 'https://www.tradingview.com/symbols/%QUERY%',
+		categories: ['finance', 'stocks', 'crypto']
+	},
+	{
+		id: 'bloomberg',
+		name: 'Bloomberg',
+		url: 'https://www.bloomberg.com/search?query=%QUERY%',
+		categories: ['finance', 'news']
+	},
+	{
+		id: 'marketwatch',
+		name: 'MarketWatch',
+		url: 'https://www.marketwatch.com/search?q=%QUERY%',
+		categories: ['finance', 'stocks']
+	},
+	{
+		id: 'investing',
+		name: 'Investing.com',
+		url: 'https://www.investing.com/search/?q=%QUERY%',
+		categories: ['finance', 'stocks', 'crypto']
+	},
+	{
+		id: 'finviz',
+		name: 'Finviz',
+		url: 'https://finviz.com/search.ashx?p=%QUERY%',
+		categories: ['finance', 'stocks']
+	},
+
+	// Crypto
+	{
+		id: 'coinmarketcap',
+		name: 'CoinMarketCap',
+		url: 'https://coinmarketcap.com/search/?q=%QUERY%',
+		categories: ['crypto']
+	},
+	{
+		id: 'coingecko',
+		name: 'CoinGecko',
+		url: 'https://www.coingecko.com/en/search?query=%QUERY%',
+		categories: ['crypto']
+	},
+	{
+		id: 'binance',
+		name: 'Binance',
+		url: 'https://www.binance.com/en/trade/%QUERY%',
+		categories: ['crypto', 'exchange']
+	},
+	{
+		id: 'coinbase',
+		name: 'Coinbase',
+		url: 'https://www.coinbase.com/price/%QUERY%',
+		categories: ['crypto', 'exchange']
+	},
+	{
+		id: 'etherscan',
+		name: 'Etherscan',
+		url: 'https://etherscan.io/search?f=0&q=%QUERY%',
+		categories: ['crypto', 'blockchain']
+	},
+	{
+		id: 'bscscan',
+		name: 'BSCscan',
+		url: 'https://bscscan.com/search?f=0&q=%QUERY%',
+		categories: ['crypto', 'blockchain']
+	},
+
+	// Crypto News & Analysis
+	{
+		id: 'cointelegraph',
+		name: 'CoinTelegraph',
+		url: 'https://cointelegraph.com/search?query=%QUERY%',
+		categories: ['crypto', 'news']
+	},
+	{
+		id: 'decrypt',
+		name: 'Decrypt',
+		url: 'https://decrypt.co/search?q=%QUERY%',
+		categories: ['crypto', 'news']
+	},
+	{
+		id: 'defillama',
+		name: 'DefiLlama',
+		url: 'https://defillama.com/search?q=%QUERY%',
+		categories: ['crypto', 'defi']
+	},
+	{
+		id: 'dexscreener',
+		name: 'DexScreener',
+		url: 'https://dexscreener.com/search?q=%QUERY%',
+		categories: ['crypto', 'defi']
+	},
+
+	// Financial Research & Tools
+	{
+		id: 'seekingalpha',
+		name: 'Seeking Alpha',
+		url: 'https://seekingalpha.com/search?q=%QUERY%',
+		categories: ['finance', 'research']
+	},
+	{
+		id: 'morningstar',
+		name: 'Morningstar',
+		url: 'https://www.morningstar.com/search?query=%QUERY%',
+		categories: ['finance', 'research']
+	},
+	{
+		id: 'fool',
+		name: 'Motley Fool',
+		url: 'https://www.fool.com/search?q=%QUERY%',
+		categories: ['finance', 'research']
+	},
+	{
+		id: 'zacks',
+		name: 'Zacks',
+		url: 'https://www.zacks.com/search.php?q=%QUERY%',
+		categories: ['finance', 'research']
+	},
+
+	// Financial Data & SEC Filings
+	{
+		id: 'edgar',
+		name: 'SEC EDGAR',
+		url: 'https://www.sec.gov/edgar/search/#/q=%QUERY%',
+		categories: ['finance', 'research', 'legal']
+	},
+	{
+		id: 'openinsider',
+		name: 'OpenInsider',
+		url: 'http://openinsider.com/search?q=%QUERY%',
+		categories: ['finance', 'stocks']
 	}
 ] as const;
 
@@ -206,9 +546,9 @@ export const INTEGRATION_CATEGORIES = Array.from(
 ).sort();
 
 export const GROUPED_INTEGRATIONS = INTEGRATION_CATEGORIES.reduce(
-	(acc, category) => {
-		acc[category] = AVAILABLE_INTEGRATIONS.filter((integration) =>
-			integration.categories.includes(category)
+	(acc, group) => {
+		acc[group] = AVAILABLE_INTEGRATIONS.filter((integration) =>
+			integration.categories.includes(group)
 		);
 		return acc;
 	},

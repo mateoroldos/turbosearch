@@ -1,9 +1,9 @@
 import { derived } from 'svelte/store';
-import type { Category, Engine, GeneralShortcuts } from './types';
+import type { Group, Engine, GeneralShortcuts } from './types';
 import { persistentStore } from './utils/persistentStore';
 
 // Default configurations
-export const DEFAULT_CATEGORIES: Category[] = [
+export const DEFAULT_CATEGORIES: Group[] = [
 	{ id: 'general', name: 'General' },
 	{ id: 'ai', name: 'AI' },
 	{ id: 'dev', name: 'Development' },
@@ -45,10 +45,7 @@ export const DEFAULT_GENERAL_SHORTCUTS: GeneralShortcuts = {
 };
 
 // Persistent stores
-export const categories = persistentStore<Category[]>(
-	'turbo-search-categories',
-	DEFAULT_CATEGORIES
-);
+export const categories = persistentStore<Group[]>('turbo-search-categories', DEFAULT_CATEGORIES);
 export const engines = persistentStore<Engine[]>('turbo-search-engines', DEFAULT_ENGINES);
 export const generalShortcuts = persistentStore<GeneralShortcuts>(
 	'turbo-search-shortcuts',

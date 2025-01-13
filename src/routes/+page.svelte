@@ -1,6 +1,6 @@
 <script lang="ts">
 	import SearchBar from '$lib/components/SearchBar.svelte';
-	import CategoryGroup from '$lib/components/CategoryGroup.svelte';
+	import EnginesGroup from '$lib/components/EnginesGroup.svelte';
 	import { engines, categories, generalShortcuts } from '$lib/stores';
 	import { onMount } from 'svelte';
 
@@ -20,29 +20,34 @@
 
 		const selectedEngines = commands
 			.filter((cmd) => cmd.startsWith('@'))
-			.map((cmd) => cmd.slice(1).toLowerCase());
+			.map((cmd) => cmd.slice(1).toLowerCase().replace(/-/g, ' ')); // Convert hyphens back to spaces
+
 		const selectedCategories = commands
 			.filter((cmd) => cmd.startsWith('#'))
-			.map((cmd) => cmd.slice(1).toLowerCase());
+			.map((cmd) => cmd.slice(1).toLowerCase().replace(/-/g, ' ')); // Convert hyphens back to spaces
 
 		return $engines
 			.filter((engine) => {
 				const matchesEngine = selectedEngines.some(
 					(name) => engine.name.toLowerCase() === name.toLowerCase()
 				);
-				const matchesCategory = engine.categories.some((cat) =>
+				const matchesGroup = engine.categories.some((cat) =>
 					selectedCategories.some(
 						(selected) =>
 							$categories.find((c) => c.name.toLowerCase() === selected.toLowerCase())?.id === cat
 					)
 				);
-				return matchesEngine || matchesCategory;
+				return matchesEngine || matchesGroup;
 			})
 			.map((engine) => engine.id);
 	}
 
-	function categoryHasVisibleEngines(categoryId: string) {
-		return $engines.some((e) => e.categories.includes(categoryId));
+	function addEngineCommand(engineName: string) {
+		const command = `@${engineName.replace(/\s+/g, '-')}`; // Replace spaces with hyphens
+		if (!commands.includes(command)) {
+			// Add the command to the beginning of the query
+			query = `${command} ${query}`.trim();
+		}
 	}
 
 	let searchTimeout: NodeJS.Timeout;
@@ -50,50 +55,35 @@
 	function search() {
 		if (!query.trim() || isSearching) return;
 
-		// Clear any pending search
 		if (searchTimeout) {
 			clearTimeout(searchTimeout);
 		}
 
-		// Extract commands and search terms
+		// Extract commands and search terms, preserving the original spacing in search terms
 		const parts = query.split(' ');
 		const searchTerms = parts
 			.filter((part) => !part.startsWith('@') && !part.startsWith('#'))
 			.join(' ')
 			.trim();
 
-		// Validate search
 		if (!searchTerms || activeEngines.length === 0) {
 			return;
 		}
 
-		// Prevent multiple searches
 		if (isSearching) return;
 		isSearching = true;
 
-		// Get engines from commands
 		const searchEngines = $engines.filter((engine) => activeEngines.includes(engine.id));
 
-		// Use timeout to prevent double execution
 		searchTimeout = setTimeout(() => {
-			// Perform searches
 			searchEngines.forEach((engine) => {
 				const searchUrl = engine.url.replace('%QUERY%', encodeURIComponent(searchTerms));
 				window.open(searchUrl, '_blank');
 			});
 
-			// Reset state
 			isSearching = false;
 			searchTimeout = undefined;
 		}, 100);
-	}
-
-	function addEngineCommand(engineName: string) {
-		const command = `@${engineName}`;
-		if (!commands.includes(command)) {
-			// Add the command to the beginning of the query
-			query = `${command} ${query}`.trim();
-		}
 	}
 
 	// Keyboard handling
@@ -169,20 +159,16 @@
 		</div>
 
 		<!-- Engine Categories -->
-		<div class="relative space-y-6">
-			<div class="space-y-4">
-				{#each Array.from(new Set($engines.flatMap((e) => e.categories))).sort() as categoryId}
+		<div class="relative">
+			<div class="flex flex-row flex-wrap gap-4">
+				{#each Array.from(new Set($engines.flatMap((e) => e.categories))).sort() as groupId}
 					<div class="group relative">
-						<div
-							class="absolute inset-0 -z-10 rounded-xl bg-gradient-to-r from-blue-500/5 to-purple-500/5 opacity-0
-																																					transition-opacity duration-300 group-hover:opacity-100"
-						></div>
-						<CategoryGroup
-							category={{
-								id: categoryId,
-								name: categoryId.charAt(0).toUpperCase() + categoryId.slice(1)
+						<EnginesGroup
+							group={{
+								id: groupId,
+								name: groupId.charAt(0).toUpperCase() + groupId.slice(1)
 							}}
-							engines={$engines.filter((e) => e.categories.includes(categoryId))}
+							engines={$engines.filter((e) => e.categories.includes(groupId))}
 							{activeEngines}
 							onToggleEngine={(engineId) => {
 								const engine = $engines.find((e) => e.id === engineId);
@@ -195,12 +181,8 @@
 				<!-- Uncategorized engines -->
 				{#if $engines.some((e) => e.categories.length === 0)}
 					<div class="group relative">
-						<div
-							class="absolute inset-0 -z-10 rounded-xl bg-gradient-to-r from-blue-500/5 to-purple-500/5 opacity-0
-																																		transition-opacity duration-300 group-hover:opacity-100"
-						></div>
-						<CategoryGroup
-							category={{ id: 'uncategorized', name: 'Uncategorized' }}
+						<EnginesGroup
+							group={{ id: 'uncategorized', name: 'Uncategorized' }}
 							engines={$engines.filter((e) => e.categories.length === 0)}
 							{activeEngines}
 							onToggleEngine={(engineId) => {

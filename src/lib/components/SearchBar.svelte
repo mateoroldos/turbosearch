@@ -3,15 +3,25 @@
 	import * as Card from '$lib/components/ui/card';
 	import KeyboardShortcut from './KeyboardShortcut.svelte';
 	import { generalShortcuts } from '$lib/stores';
-	import { Badge } from '$lib/components/ui/badge';
 	import { Search } from 'lucide-svelte';
 	import { engines, categories } from '$lib/stores';
 	import { fade } from 'svelte/transition';
 	import Fuse from 'fuse.js';
+	import { AVAILABLE_INTEGRATIONS } from '$lib/data/integrations';
 
 	export let query: string;
 	export let onSearch: () => void;
 	export let onEscape: () => void;
+
+	type SuggestionSource = 'saved' | 'available';
+
+	type Suggestion = {
+		type: 'engine' | 'group';
+		id: string;
+		name: string;
+		shortcut?: string;
+		source: SuggestionSource;
+	};
 
 	let inputElement: HTMLInputElement;
 	let isFocused = false;
@@ -19,7 +29,7 @@
 
 	// Command mode state
 	let isEngineCommandMode = false;
-	let isCategoryCommandMode = false;
+	let isGroupCommandMode = false;
 	let isCommandMode = false;
 	let commandQuery = '';
 
@@ -43,8 +53,8 @@
 		const currentInput = lastSpaceIndex === -1 ? query : query.slice(lastSpaceIndex + 1);
 
 		isEngineCommandMode = currentInput.startsWith('@');
-		isCategoryCommandMode = currentInput.startsWith('#');
-		isCommandMode = isEngineCommandMode || isCategoryCommandMode;
+		isGroupCommandMode = currentInput.startsWith('#');
+		isCommandMode = isEngineCommandMode || isGroupCommandMode;
 
 		if (isCommandMode) {
 			commandQuery = currentInput.slice(1).toLowerCase();
@@ -52,6 +62,10 @@
 			commandQuery = '';
 			selectedIndex = -1;
 		}
+	}
+
+	function formatCommandName(name: string): string {
+		return name.replace(/\s+/g, '-');
 	}
 
 	// Generate suggestions based on command mode
@@ -62,50 +76,11 @@
 		selectedCategories
 	);
 
-	function getFuzzySuggestions(
-		query: string,
-		isEngine: boolean,
-		selectedEngs: string[],
-		selectedCats: string[]
-	) {
-		if (!isCommandMode) return [];
-
-		const items = isEngine
-			? $engines.filter((eng) => !selectedEngs.includes(eng.name))
-			: $categories.filter((cat) => !selectedCats.includes(cat.name));
-
-		if (!query.trim()) {
-			return items
-				.slice(0, MAX_SUGGESTIONS)
-				.map((item) => mapToSuggestion(isEngine ? 'engine' : 'category')(item));
-		}
-
-		const fuse = new Fuse(items, FUZZY_OPTIONS);
-		return fuse
-			.search(query)
-			.slice(0, MAX_SUGGESTIONS)
-			.map(({ item }) => mapToSuggestion(isEngine ? 'engine' : 'category')(item));
-	}
-
-	type Suggestion = {
-		type: 'engine' | 'category';
-		id: string;
-		name: string;
-		shortcut?: string;
-	};
-
-	function mapToSuggestion(type: 'engine' | 'category') {
-		return (item: any): Suggestion => ({
-			type,
-			id: item.id,
-			name: item.name,
-			shortcut: item.shortcut
-		});
-	}
-
 	function handleSuggestionSelect(suggestion: Suggestion) {
 		const prefix = suggestion.type === 'engine' ? '@' : '#';
-		const newCommand = `${prefix}${suggestion.name}`;
+		// Format the name with hyphens instead of spaces
+		const formattedName = formatCommandName(suggestion.name);
+		const newCommand = `${prefix}${formattedName}`;
 
 		const lastSpaceIndex = query.lastIndexOf(' ');
 		const beforeCommand = lastSpaceIndex === -1 ? '' : query.slice(0, lastSpaceIndex + 1);
@@ -116,6 +91,81 @@
 		// Reset selection state
 		selectedIndex = -1;
 		inputElement?.focus();
+	}
+
+	function getFuzzySuggestions(
+		query: string,
+		isEngine: boolean,
+		selectedEngs: string[],
+		selectedCats: string[]
+	) {
+		if (!isCommandMode) return [];
+
+		// Get saved items
+		const savedItems = isEngine
+			? $engines.filter((eng) => !selectedEngs.includes(formatCommandName(eng.name)))
+			: $categories.filter((cat) => !selectedCats.includes(formatCommandName(cat.name)));
+
+		// Get available items (only for engines)
+		const availableItems = isEngine
+			? AVAILABLE_INTEGRATIONS.filter(
+					(integration) =>
+						!selectedEngs.includes(formatCommandName(integration.name)) &&
+						!$engines.some((eng) => eng.id === integration.id)
+				)
+			: [];
+
+		if (!query.trim()) {
+			return [
+				...savedItems
+					.slice(0, MAX_SUGGESTIONS)
+					.map((item) => mapToSuggestion(isEngine ? 'engine' : 'group', 'saved')(item)),
+				...availableItems
+					.slice(0, MAX_SUGGESTIONS)
+					.map((item) => mapToSuggestion('engine', 'available')(item))
+			];
+		}
+
+		// Replace hyphens with spaces for matching
+		const searchQuery = query.replace(/-/g, ' ');
+
+		// Create Fuse instances for both saved and available items
+		const savedFuse = new Fuse(savedItems, {
+			...FUZZY_OPTIONS,
+			getFn: (obj, path) => {
+				const value = obj[path as keyof typeof obj];
+				return typeof value === 'string' ? value.replace(/-/g, ' ') : value;
+			}
+		});
+
+		const availableFuse = new Fuse(availableItems, {
+			...FUZZY_OPTIONS,
+			getFn: (obj, path) => {
+				const value = obj[path as keyof typeof obj];
+				return typeof value === 'string' ? value.replace(/-/g, ' ') : value;
+			}
+		});
+
+		// Get results from both sources
+		const savedResults = savedFuse
+			.search(searchQuery)
+			.map(({ item }) => mapToSuggestion(isEngine ? 'engine' : 'group', 'saved')(item));
+
+		const availableResults = availableFuse
+			.search(searchQuery)
+			.map(({ item }) => mapToSuggestion('engine', 'available')(item));
+
+		return [...savedResults, ...availableResults].slice(0, MAX_SUGGESTIONS * 2);
+	}
+
+	function mapToSuggestion(type: 'engine' | 'group', source: SuggestionSource = 'saved') {
+		return (item: any): Suggestion => ({
+			type,
+			id: item.id,
+			name: item.name,
+			shortcut: item.shortcut,
+			source
+		});
 	}
 
 	function handleKeyDown(event: KeyboardEvent) {
@@ -162,12 +212,6 @@
 	export function focus() {
 		inputElement?.focus();
 	}
-
-	function getCommandBadgeClass(type: 'engine' | 'category') {
-		return type === 'engine'
-			? 'bg-blue-50 dark:bg-blue-900/50'
-			: 'bg-purple-50 dark:bg-purple-900/50';
-	}
 </script>
 
 <Card.Root class="mb-8">
@@ -211,7 +255,7 @@
 				>
 					<!-- Search stats -->
 					<div class="border-b border-blue-500/20 px-3 py-1.5 text-xs">
-						{#if (isEngineCommandMode && $engines.some((e) => e.name.toLowerCase() === commandQuery.toLowerCase())) || (isCategoryCommandMode && $categories.some((c) => c.name.toLowerCase() === commandQuery.toLowerCase()))}
+						{#if (isEngineCommandMode && $engines.some((e) => e.name.toLowerCase() === commandQuery.toLowerCase())) || (isGroupCommandMode && $categories.some((c) => c.name.toLowerCase() === commandQuery.toLowerCase()))}
 							<span class="text-green-500">✓</span>
 							<span class={isEngineCommandMode ? 'text-blue-500' : 'text-purple-500'}>
 								{isEngineCommandMode ? '@' : '#'}{commandQuery}
@@ -232,24 +276,52 @@
 					<!-- Suggestions list -->
 					{#if suggestions.length > 0}
 						<div class="max-h-[300px] overflow-y-auto p-1.5">
-							{#each suggestions as suggestion, i}
-								<button
-									class="flex w-full items-center justify-between rounded-md px-3 py-2 text-left
-																							text-sm transition-colors
-																							{i === selectedIndex ? 'bg-blue-500/20' : 'hover:bg-blue-500/10'}"
-									onclick={() => handleSuggestionSelect(suggestion)}
-								>
-									<div class="flex items-center gap-2">
-										<span>
-											{suggestion.type === 'engine' ? '@' : '#'}
-										</span>
-										<span class="font-medium">{suggestion.name}</span>
-									</div>
-									{#if i === 0}
-										<kbd class="text-xs text-gray-500">tab</kbd>
-									{/if}
-								</button>
-							{/each}
+							{#if suggestions.some((s) => s.source === 'saved')}
+								<div class="mb-2">
+									<div class="px-2 py-1 text-xs font-medium text-gray-500">Saved</div>
+									{#each suggestions.filter((s) => s.source === 'saved') as suggestion, i}
+										<button
+											class="flex w-full items-center justify-between rounded-md px-3 py-2 text-left
+                        text-sm transition-colors
+                        {i === selectedIndex ? 'bg-blue-500/20' : 'hover:bg-blue-500/10'}"
+											onclick={() => handleSuggestionSelect(suggestion)}
+										>
+											<div class="flex items-center gap-2">
+												<span>{suggestion.type === 'engine' ? '@' : '#'}</span>
+												<span class="font-medium">{formatCommandName(suggestion.name)}</span>
+											</div>
+											{#if (selectedIndex === -1 && i === 0) || selectedIndex === i}
+												<kbd class="text-xs text-gray-500">tab</kbd>
+											{/if}
+										</button>
+									{/each}
+								</div>
+							{/if}
+
+							{#if suggestions.some((s) => s.source === 'available')}
+								<div>
+									<div class="px-2 py-1 text-xs font-medium text-gray-500">Available</div>
+									{#each suggestions.filter((s) => s.source === 'available') as suggestion, i}
+										<button
+											class="flex w-full items-center justify-between rounded-md px-3 py-2 text-left
+                        text-sm opacity-75 transition-colors hover:opacity-100
+                        {i + suggestions.filter((s) => s.source === 'saved').length ===
+											selectedIndex
+												? 'bg-blue-500/20'
+												: 'hover:bg-blue-500/10'}"
+											onclick={() => handleSuggestionSelect(suggestion)}
+										>
+											<div class="flex items-center gap-2">
+												<span>@</span>
+												<span class="font-medium">{formatCommandName(suggestion.name)}</span>
+											</div>
+											{#if selectedIndex === i + suggestions.filter((s) => s.source === 'saved').length}
+												<kbd class="text-xs text-gray-500">tab</kbd>
+											{/if}
+										</button>
+									{/each}
+								</div>
+							{/if}
 						</div>
 					{/if}
 				</div>
@@ -267,7 +339,7 @@
 						</div>
 						<div class="flex items-center gap-1">
 							<KeyboardShortcut keys="#" />
-							<span class="text-xs text-gray-400">category</span>
+							<span class="text-xs text-gray-400">group</span>
 						</div>
 					</div>
 					<div class="flex items-center gap-2">

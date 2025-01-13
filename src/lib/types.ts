@@ -5,7 +5,7 @@ export type Engine = {
 	categories: string[];
 };
 
-export type Category = {
+export type Group = {
 	id: string;
 	name: string;
 };

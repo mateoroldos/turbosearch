@@ -17,8 +17,8 @@ A lightning-fast, keyboard-driven search interface that lets you search across m
 ## 🎯 Quick Commands
 
 - `@engine`: Search using a specific engine
-- `#category`: Search across all engines in a category
-- `@engine #category`: Combine commands for precise searching
+- `#group`: Search across all engines in a group
+- `@engine #group`: Combine commands for precise searching
 - `/`: Focus the search bar
 - `Esc`: Exit search mode
 
