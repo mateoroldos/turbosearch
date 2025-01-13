@@ -2,12 +2,9 @@
 	import '../app.css';
 	import { page } from '$app/stores';
 	import { Toaster } from '$lib/components/ui/sonner';
-	import { Settings2, Command, Info, X } from 'lucide-svelte';
+	import { Settings2, X } from 'lucide-svelte';
 	import { ModeWatcher } from 'mode-watcher';
 	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
-	import { browser } from '$app/environment';
-	import { writable } from 'svelte/store';
-	import Button from '$lib/components/ui/button/button.svelte';
 
 	const navigationItems = [
 		{
@@ -18,77 +15,12 @@
 		}
 	];
 
-	const hasPromptBeenDismissed = writable(false);
-
-	if (browser) {
-		const dismissed = localStorage.getItem('newTabPromptDismissed') === 'true';
-		hasPromptBeenDismissed.set(dismissed);
-	}
-
-	function dismissPrompt() {
-		hasPromptBeenDismissed.set(true);
-		if (browser) {
-			localStorage.setItem('newTabPromptDismissed', 'true');
-		}
-	}
-
-	function getBrowserInstructions() {
-		if (!browser) return null;
-
-		const userAgent = navigator.userAgent.toLowerCase();
-
-		if (userAgent.includes('chrome')) {
-			return {
-				browser: 'Chrome',
-				steps: [
-					'Install the "New Tab Redirect" extension',
-					'Set the URL to this page',
-					'Open a new tab to see TurboSearch'
-				]
-			};
-		} else if (userAgent.includes('firefox')) {
-			return {
-				browser: 'Firefox',
-				steps: [
-					'Install the "New Tab Override" extension',
-					'Set the URL to this page',
-					'Enjoy TurboSearch in every new tab'
-				]
-			};
-		} else if (userAgent.includes('safari')) {
-			return {
-				browser: 'Safari',
-				steps: [
-					'Open Safari Preferences',
-					'Go to General tab',
-					'Set New tabs open with: to "Homepage"',
-					'Set Homepage to this page URL'
-				]
-			};
-		}
-
-		return null;
-	}
-
-	function getExtensionUrl(browser: string) {
-		switch (browser) {
-			case 'Chrome':
-				return 'https://chrome.google.com/webstore/detail/new-tab-redirect/icpgjfneehieebagbmdbhnlpiopdcmna';
-			case 'Firefox':
-				return 'https://addons.mozilla.org/en-US/firefox/addon/new-tab-override/';
-			default:
-				return '#';
-		}
-	}
-
-	$: browserInstructions = getBrowserInstructions();
-
 	$: currentPath = $page.url.pathname;
 </script>
 
 <ModeWatcher />
 
-<div class="bg-background/80 fixed left-0 top-0 z-50 w-full border-b backdrop-blur-sm">
+<div class="fixed left-0 top-0 z-50 w-full border-b bg-background/80 backdrop-blur-sm">
 	<div class="container flex h-16 items-center">
 		<a class="mr-4" href="/">
 			<span
@@ -102,10 +34,10 @@
 			{#each navigationItems as item}
 				<a
 					href={item.href}
-					class="hover:bg-accent hover:text-accent-foreground group inline-flex items-center rounded-md px-3 py-2 text-sm
-                           font-medium transition-colors
+					class="group inline-flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors
+                           hover:bg-accent hover:text-accent-foreground
                            {currentPath === item.href
-						? 'text-primary dark:bg-primary/10 bg-blue-50'
+						? 'bg-blue-50 text-primary dark:bg-primary/10'
 						: 'text-muted-foreground'}"
 				>
 					<div class="flex items-center gap-2">
@@ -118,8 +50,8 @@
 
 					<!-- Tooltip for description -->
 					<div
-						class="bg-popover text-popover-foreground absolute left-1/2 top-14 hidden -translate-x-1/2 rounded-lg px-3
-                               py-2 text-xs opacity-0 shadow-md
+						class="absolute left-1/2 top-14 hidden -translate-x-1/2 rounded-lg bg-popover px-3 py-2
+                               text-xs text-popover-foreground opacity-0 shadow-md
                                transition-opacity group-hover:opacity-100 dark:bg-gray-800"
 					>
 						{item.description}
@@ -133,7 +65,7 @@
 			<ThemeToggle />
 
 			<div
-				class="hidden h-8 w-px bg-gray-200 lg:block dark:bg-gray-800"
+				class="hidden h-8 w-px bg-gray-200 dark:bg-gray-800 lg:block"
 				role="separator"
 				aria-orientation="vertical"
 			/>
@@ -145,7 +77,7 @@
 				rel="noopener noreferrer"
 				class="hidden items-center space-x-2 rounded-md bg-gray-900 px-4 py-1.5
                        text-sm font-medium text-white transition-colors
-                       hover:bg-gray-700 lg:flex dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
+                       hover:bg-gray-700 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100 lg:flex"
 			>
 				<svg class="h-4 w-4" viewBox="0 0 24 24">
 					<path
@@ -159,63 +91,7 @@
 	</div>
 </div>
 
-<!-- Add spacing for fixed header -->
 <div class="h-16" />
-
-{#if browser && !$hasPromptBeenDismissed && browserInstructions}
-	<div class="animate-slide-up fixed bottom-4 right-4 z-50 w-96">
-		<div class="bg-card relative overflow-hidden rounded-lg border p-6 shadow-lg">
-			<!-- Close button -->
-			<button
-				onclick={dismissPrompt}
-				class="absolute right-2 top-2 rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-			>
-				<X class="h-4 w-4" />
-			</button>
-
-			<!-- Content -->
-			<div class="flex items-start space-x-4">
-				<div class="rounded-full bg-blue-100 p-2 text-blue-600">
-					<Info class="h-5 w-5" />
-				</div>
-				<div class="flex-1">
-					<h3 class="mb-1 font-medium">Make TurboSearch Your New Tab Page</h3>
-					<p class="mb-3 text-sm text-gray-500">
-						Get instant access to TurboSearch every time you open a new tab in {browserInstructions.browser}
-					</p>
-
-					<!-- Browser-specific instructions -->
-					<div class="space-y-2">
-						{#each browserInstructions.steps as step, i}
-							<div class="flex items-center gap-2 text-sm">
-								<span
-									class="flex h-5 w-5 items-center justify-center rounded-full bg-blue-100 text-xs text-blue-600"
-								>
-									{i + 1}
-								</span>
-								<span>{step}</span>
-							</div>
-						{/each}
-					</div>
-
-					<!-- Action buttons -->
-					<div class="mt-4 flex gap-2">
-						<Button
-							onclick={() => window.open(getExtensionUrl(browserInstructions.browser), '_blank')}
-							class="group bg-blue-500 text-white hover:bg-blue-600"
-						>
-							Get Extension
-							<span class="ml-1 inline-block transition-transform group-hover:translate-x-0.5"
-								>→</span
-							>
-						</Button>
-						<Button variant="outline" onclick={dismissPrompt}>Maybe Later</Button>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-{/if}
 
 <Toaster />
 <main class="min-h-[calc(100vh-4rem)]">
@@ -223,21 +99,6 @@
 </main>
 
 <style>
-	@keyframes slide-up {
-		from {
-			opacity: 0;
-			transform: translateY(1rem);
-		}
-		to {
-			opacity: 1;
-			transform: translateY(0);
-		}
-	}
-
-	.animate-slide-up {
-		animation: slide-up 0.3s ease-out;
-	}
-
 	:global(body) {
 		font-family:
 			'Inter',

@@ -4,12 +4,12 @@ import { persistentStore } from './utils/persistentStore';
 
 // Default configurations
 export const DEFAULT_CATEGORIES: Category[] = [
-	{ id: 'general', name: 'General', shortcut: '1' },
-	{ id: 'ai', name: 'AI', shortcut: '2' },
-	{ id: 'dev', name: 'Development', shortcut: '3' },
-	{ id: 'docs', name: 'Documentation', shortcut: '4' },
-	{ id: 'community', name: 'Community', shortcut: '5' },
-	{ id: 'design', name: 'Design', shortcut: '6' }
+	{ id: 'general', name: 'General' },
+	{ id: 'ai', name: 'AI' },
+	{ id: 'dev', name: 'Development' },
+	{ id: 'docs', name: 'Documentation' },
+	{ id: 'community', name: 'Community' },
+	{ id: 'design', name: 'Design' }
 ];
 
 export const DEFAULT_ENGINES: Engine[] = [
@@ -17,21 +17,18 @@ export const DEFAULT_ENGINES: Engine[] = [
 		id: 'google',
 		name: 'Google',
 		url: 'https://www.google.com/search?q=%QUERY%',
-		shortcut: 'g',
 		categories: ['general']
 	},
 	{
 		id: 'perplexity',
 		name: 'Perplexity',
 		url: 'https://www.perplexity.ai/?q=%QUERY%',
-		shortcut: 'p',
 		categories: ['ai']
 	},
 	{
 		id: 'chatgpt',
 		name: 'ChatGPT',
 		url: 'https://chat.openai.com/?q=%QUERY%',
-		shortcut: 'c',
 		categories: ['ai']
 	},
 	{
@@ -60,26 +57,12 @@ export const generalShortcuts = persistentStore<GeneralShortcuts>(
 export const activeEngines = persistentStore<string[]>('turbo-search-active-engines', []);
 
 // Derived stores for validation
-export const usedShortcuts = derived(
-	[categories, engines, generalShortcuts],
-	([$categories, $engines, $generalShortcuts]) => {
-		const shortcuts = new Set<string>();
-
-		// Add general shortcuts
-		shortcuts.add($generalShortcuts.focusSearch);
-		shortcuts.add($generalShortcuts.exitSearch);
-
-		// Add category shortcuts
-		$categories.forEach((cat) => shortcuts.add(cat.shortcut));
-
-		// Add engine shortcuts
-		$engines.forEach((engine) => {
-			if (engine.shortcut) shortcuts.add(engine.shortcut);
-		});
-
-		return shortcuts;
-	}
-);
+export const usedShortcuts = derived([generalShortcuts], ([$generalShortcuts]) => {
+	const shortcuts = new Set<string>();
+	shortcuts.add($generalShortcuts.focusSearch);
+	shortcuts.add($generalShortcuts.exitSearch);
+	return shortcuts;
+});
 
 // Helper function to reset to defaults
 export function resetToDefaults() {

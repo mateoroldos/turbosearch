@@ -7,8 +7,8 @@
 	import { Label } from '$lib/components/ui/label';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Plus, Check, Search, X } from 'lucide-svelte';
-	import type { Engine, Category, GeneralShortcuts } from '$lib/types';
-	import { categories, engines, generalShortcuts, usedShortcuts } from '$lib/stores';
+	import type { Engine, GeneralShortcuts } from '$lib/types';
+	import { categories, engines, generalShortcuts } from '$lib/stores';
 	import { GROUPED_INTEGRATIONS, AVAILABLE_INTEGRATIONS } from '$lib/data/integrations';
 	import { toast } from 'svelte-sonner';
 
@@ -39,44 +39,6 @@
 
 	// New item states
 	let newEngine: Partial<Engine> = { categories: [] };
-
-	function isValidShortcut(key: string): boolean {
-		return /^[a-zA-Z0-9]$/.test(key);
-	}
-
-	function updateEngineShortcut(engine: Engine, shortcut: string) {
-		// Normalize shortcut
-		shortcut = shortcut.toLowerCase().trim();
-
-		// Remove shortcut if empty
-		if (!shortcut) {
-			engines.update((items) =>
-				items.map((item) => (item.id === engine.id ? { ...item, shortcut: undefined } : item))
-			);
-			return;
-		}
-
-		// Validate shortcut
-		if (!isValidShortcut(shortcut)) {
-			toast.error('Shortcut must be a single letter or number');
-			return;
-		}
-
-		// Check if shortcut is already in use
-		if (!isShortcutValid(shortcut, engine.id)) {
-			const owner = getShortcutOwner(shortcut);
-			toast.error(`Shortcut ${shortcut} is already used by ${owner?.name || 'another item'}`);
-			return;
-		}
-
-		// Update shortcut
-		engines.update((items) =>
-			items.map((item) => (item.id === engine.id ? { ...item, shortcut } : item))
-		);
-
-		// Show success message
-		toast.success(`Updated shortcut for ${engine.name}`);
-	}
 
 	function setAddEngineTab(value: string) {
 		addEngineTab = value;
@@ -121,11 +83,6 @@
 			return;
 		}
 
-		if (newEngine.shortcut && !isShortcutValid(newEngine.shortcut)) {
-			toast.error(`Shortcut ${newEngine.shortcut} is already in use`);
-			return;
-		}
-
 		engines.update((items) => [
 			...items,
 			{
@@ -137,16 +94,6 @@
 		toast.success(`Added ${newEngine.name} successfully!`);
 		newEngine = { categories: [] };
 		showAddEngineDialog = false;
-	}
-
-	// Validation
-	function isShortcutValid(shortcut: string, currentId?: string): boolean {
-		if (!shortcut) return true;
-		return !$usedShortcuts.has(shortcut) || getShortcutOwner(shortcut)?.id === currentId;
-	}
-
-	function getShortcutOwner(shortcut: string) {
-		return [...$engines, ...$categories].find((item) => item.shortcut === shortcut);
 	}
 
 	function removeEngine(id: string) {
@@ -175,23 +122,7 @@
 		);
 	}
 
-	function updateCategoryShortcut(category: Category, shortcut: string) {
-		if (!isShortcutValid(shortcut, category.id)) {
-			toast.error(`Shortcut ${shortcut} is already in use`);
-			return;
-		}
-
-		categories.update((items) =>
-			items.map((item) => (item.id === category.id ? { ...item, shortcut } : item))
-		);
-	}
-
 	function updateGeneralShortcut(key: keyof GeneralShortcuts, shortcut: string) {
-		if (!isShortcutValid(shortcut, key)) {
-			toast.error(`Shortcut ${shortcut} is already in use`);
-			return;
-		}
-
 		generalShortcuts.update((current) => ({
 			...current,
 			[key]: shortcut
@@ -239,7 +170,7 @@
 		<Card.Content class="space-y-4">
 			{#each filteredEngines as engine}
 				<div
-					class="bg-card group relative rounded-lg border p-4 transition-all hover:border-blue-500/50
+					class="group relative rounded-lg border bg-card p-4 transition-all hover:border-blue-500/50
                            hover:shadow-md dark:hover:border-blue-500/20"
 				>
 					<!-- Engine content -->
@@ -247,23 +178,8 @@
 						<div class="space-y-1">
 							<div class="flex items-center gap-3">
 								<h3 class="font-medium">{engine.name}</h3>
-								<div class="relative">
-									<input
-										type="text"
-										value={engine.shortcut || ''}
-										class="border-input h-6 w-8 rounded border bg-transparent px-2 font-mono text-sm
-                                               transition-colors hover:border-blue-500/50 focus:border-blue-500
-                                               focus:outline-none focus:ring-1 focus:ring-blue-500
-                                               {!isShortcutValid(engine.shortcut || '', engine.id)
-											? 'border-red-500 focus:border-red-500 focus:ring-red-500'
-											: ''}"
-										onchange={(e) => updateEngineShortcut(engine, e.currentTarget.value)}
-										onfocus={(e) => e.currentTarget.select()}
-										maxlength={1}
-									/>
-								</div>
 							</div>
-							<p class="text-muted-foreground text-sm">{engine.url}</p>
+							<p class="text-sm text-muted-foreground">{engine.url}</p>
 						</div>
 
 						<!-- Action buttons -->
@@ -274,7 +190,7 @@
 								variant="ghost"
 								size="sm"
 								onclick={() => showCategorySelector(engine)}
-								class="hover:text-primary rounded-full hover:bg-blue-50"
+								class="rounded-full hover:bg-blue-50 hover:text-primary"
 							>
 								<Plus class="h-4 w-4" />
 							</Button>
@@ -348,24 +264,6 @@
 								on:change={(e) => updateGeneralShortcut('exitSearch', e.currentTarget.value)}
 							/>
 						</div>
-					</div>
-				</div>
-
-				<!-- Categories -->
-				<div>
-					<h3 class="mb-2 font-medium">Categories</h3>
-					<div class="space-y-2">
-						{#each $categories as category}
-							<div class="flex items-center justify-between">
-								<span class="text-sm">{category.name}</span>
-								<Input
-									type="text"
-									value={category.shortcut}
-									class="w-20 text-center"
-									on:change={(e) => updateCategoryShortcut(category, e.currentTarget.value)}
-								/>
-							</div>
-						{/each}
 					</div>
 				</div>
 			</div>
@@ -450,15 +348,6 @@
 							</p>
 						</div>
 						<div>
-							<Label>Shortcut (optional)</Label>
-							<Input
-								type="text"
-								bind:value={newEngine.shortcut}
-								placeholder="Single key shortcut"
-								maxlength={1}
-							/>
-						</div>
-						<div>
 							<Label>Categories</Label>
 							<div class="mt-2 flex flex-wrap gap-2">
 								{#each $categories as category}
@@ -504,18 +393,15 @@
 				{#each categoriesWithActive as category}
 					<button
 						class="flex items-center justify-between rounded-lg border p-3 text-left
-							transition-colors hover:bg-gray-50
-							{category.isActive ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}"
+        transition-colors hover:bg-gray-50
+        {category.isActive ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}"
 						onclick={(event) => toggleEngineCategory(event, selectedEngine, category.id)}
 					>
 						<div>
 							<span class="font-medium">{category.name}</span>
-							<span class="ml-2 text-sm text-gray-500">
-								({category.shortcut})
-							</span>
 						</div>
 						{#if category.isActive}
-							<Check class="text-primary h-4 w-4" />
+							<Check class="h-4 w-4 text-primary" />
 						{:else}
 							<Plus class="h-4 w-4 text-gray-400" />
 						{/if}

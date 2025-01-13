@@ -203,15 +203,21 @@
 			</div>
 
 			<!-- Command Mode Suggestions -->
-			{#if isCommandMode}
+			{#if isCommandMode && isFocused}
 				<div
 					transition:fade={{ duration: 100 }}
-					class="bg-background absolute z-20 mt-2 w-full overflow-hidden rounded-lg border
+					class="absolute z-20 mt-2 w-full overflow-hidden rounded-lg border bg-background
                  shadow-lg backdrop-blur-sm"
 				>
 					<!-- Search stats -->
 					<div class="border-b border-blue-500/20 px-3 py-1.5 text-xs">
-						{#if suggestions.length > 0}
+						{#if (isEngineCommandMode && $engines.some((e) => e.name.toLowerCase() === commandQuery.toLowerCase())) || (isCategoryCommandMode && $categories.some((c) => c.name.toLowerCase() === commandQuery.toLowerCase()))}
+							<span class="text-green-500">✓</span>
+							<span class={isEngineCommandMode ? 'text-blue-500' : 'text-purple-500'}>
+								{isEngineCommandMode ? '@' : '#'}{commandQuery}
+							</span>
+							selected
+						{:else if suggestions.length > 0}
 							{suggestions.length} result{suggestions.length === 1 ? '' : 's'}
 							{#if commandQuery}
 								for "{commandQuery}"
@@ -229,8 +235,8 @@
 							{#each suggestions as suggestion, i}
 								<button
 									class="flex w-full items-center justify-between rounded-md px-3 py-2 text-left
-                               text-sm transition-colors
-                               {i === selectedIndex ? 'bg-blue-500/20' : 'hover:bg-blue-500/10'}"
+																							text-sm transition-colors
+																							{i === selectedIndex ? 'bg-blue-500/20' : 'hover:bg-blue-500/10'}"
 									onclick={() => handleSuggestionSelect(suggestion)}
 								>
 									<div class="flex items-center gap-2">
@@ -239,13 +245,8 @@
 										</span>
 										<span class="font-medium">{suggestion.name}</span>
 									</div>
-									{#if suggestion.shortcut}
-										<kbd
-											class="rounded border border-blue-500/20 bg-blue-500/5
-                                      px-2 py-0.5 text-xs"
-										>
-											{suggestion.shortcut}
-										</kbd>
+									{#if i === 0}
+										<kbd class="text-xs text-gray-500">tab</kbd>
 									{/if}
 								</button>
 							{/each}
@@ -257,21 +258,9 @@
 			<!-- Keyboard Shortcuts Help -->
 			{#if isFocused}
 				<div
-					class="mt-3 space-y-2 rounded-lg bg-gray-50/50 p-3 backdrop-blur-sm dark:bg-gray-900/50"
+					class="mt-3 flex flex-row justify-between rounded-lg border bg-gray-50/50 p-3 backdrop-blur-sm dark:bg-gray-900/50"
 				>
-					<div
-						class="flex items-center justify-between border-b border-gray-200/20 pb-2 dark:border-gray-700/20"
-					>
-						<div class="flex items-center gap-2">
-							<KeyboardShortcut keys={$generalShortcuts.exitSearch} />
-							<span class="text-xs text-gray-400">exit</span>
-						</div>
-						<div class="flex items-center gap-2">
-							<KeyboardShortcut keys="↵" />
-							<span class="text-xs text-gray-400">search</span>
-						</div>
-					</div>
-					<div class="flex items-center gap-4 pt-1">
+					<div class="flex items-center gap-4">
 						<div class="flex items-center gap-1">
 							<KeyboardShortcut keys="@" />
 							<span class="text-xs text-gray-400">engine</span>
@@ -281,10 +270,14 @@
 							<span class="text-xs text-gray-400">category</span>
 						</div>
 					</div>
+					<div class="flex items-center gap-2">
+						<KeyboardShortcut keys="↵" />
+						<span class="text-xs text-gray-400">search</span>
+					</div>
 				</div>
 			{:else}
 				<div
-					class="mt-3 flex items-center justify-center rounded-lg bg-gray-50/50 p-2 backdrop-blur-sm dark:bg-gray-900/50"
+					class="mt-3 flex items-center justify-center rounded-lg border bg-gray-50/50 p-2 backdrop-blur-sm dark:bg-gray-900/50"
 				>
 					<KeyboardShortcut keys={$generalShortcuts.focusSearch} />
 					<span class="ml-2 text-xs text-gray-400">to start searching</span>

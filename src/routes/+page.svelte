@@ -1,27 +1,19 @@
 <script lang="ts">
 	import SearchBar from '$lib/components/SearchBar.svelte';
 	import CategoryGroup from '$lib/components/CategoryGroup.svelte';
-	import {
-		engines,
-		categories,
-		generalShortcuts,
-		activeEngines as activeEnginesStore
-	} from '$lib/stores';
+	import { engines, categories, generalShortcuts } from '$lib/stores';
+	import { onMount } from 'svelte';
 
 	// Local state
 	let query = '';
 	let searchBarComponent: any;
-	let selectedEngineIndex = -1;
 	let isSearching = false;
 
 	// Parse commands from query
 	$: commands = query.match(/([@#][^\s@#]+)/g) || [];
 
-	// Get engines selected by commands
-	$: commandSelectedEngines = getCommandSelectedEngines(commands);
-
-	// Combine manual and command selections
-	$: activeEngines = [...new Set([...$activeEnginesStore, ...commandSelectedEngines])];
+	// Get active engines based on commands
+	$: activeEngines = getCommandSelectedEngines(commands);
 
 	function getCommandSelectedEngines(commands: string[]): string[] {
 		if (commands.length === 0) return [];
@@ -71,11 +63,7 @@
 			.trim();
 
 		// Validate search
-		if (!searchTerms) {
-			return;
-		}
-
-		if (activeEngines.length === 0) {
+		if (!searchTerms || activeEngines.length === 0) {
 			return;
 		}
 
@@ -83,7 +71,7 @@
 		if (isSearching) return;
 		isSearching = true;
 
-		// Get unique engines from both selections
+		// Get engines from commands
 		const searchEngines = $engines.filter((engine) => activeEngines.includes(engine.id));
 
 		// Use timeout to prevent double execution
@@ -100,24 +88,12 @@
 		}, 100);
 	}
 
-	function toggleEngine(id: string) {
-		activeEnginesStore.update((current) =>
-			current.includes(id) ? current.filter((e) => e !== id) : [...current, id]
-		);
-	}
-
-	function toggleCategory(categoryId: string) {
-		const categoryEngines = $engines
-			.filter((engine) => engine.categories.includes(categoryId))
-			.map((engine) => engine.id);
-
-		const allActive = categoryEngines.every((id) => $activeEnginesStore.includes(id));
-
-		activeEnginesStore.update((current) =>
-			allActive
-				? current.filter((id) => !categoryEngines.includes(id))
-				: [...new Set([...current, ...categoryEngines])]
-		);
+	function addEngineCommand(engineName: string) {
+		const command = `@${engineName}`;
+		if (!commands.includes(command)) {
+			// Add the command to the beginning of the query
+			query = `${command} ${query}`.trim();
+		}
 	}
 
 	// Keyboard handling
@@ -138,22 +114,6 @@
 			return;
 		}
 
-		// Category shortcuts
-		const category = $categories.find((cat) => cat.shortcut === event.key);
-		if (category && !event.ctrlKey && !event.metaKey && !event.altKey) {
-			event.preventDefault();
-			toggleCategory(category.id);
-			return;
-		}
-
-		// Engine shortcuts
-		const engine = $engines.find((eng) => eng.shortcut === event.key);
-		if (engine && !event.ctrlKey && !event.metaKey && !event.altKey) {
-			event.preventDefault();
-			toggleEngine(engine.id);
-			return;
-		}
-
 		// Focus search
 		if (event.key === $generalShortcuts.focusSearch) {
 			event.preventDefault();
@@ -164,6 +124,10 @@
 	function handleSearchEscape() {
 		searchBarComponent?.blur();
 	}
+
+	onMount(() => {
+		searchBarComponent?.focus();
+	});
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -207,24 +171,45 @@
 		<!-- Engine Categories -->
 		<div class="relative space-y-6">
 			<div class="space-y-4">
-				{#each $categories as category}
-					{#if categoryHasVisibleEngines(category.id)}
-						<div class="group relative">
-							<div
-								class="absolute inset-0 -z-10 rounded-xl bg-gradient-to-r from-blue-500/5 to-purple-500/5 opacity-0
-                                      transition-opacity duration-300 group-hover:opacity-100"
-							/>
-							<CategoryGroup
-								{category}
-								engines={$engines.filter((e) => e.categories.includes(category.id))}
-								manuallySelectedEngines={$activeEnginesStore}
-								{commandSelectedEngines}
-								{selectedEngineIndex}
-								onToggleEngine={toggleEngine}
-							/>
-						</div>
-					{/if}
+				{#each Array.from(new Set($engines.flatMap((e) => e.categories))).sort() as categoryId}
+					<div class="group relative">
+						<div
+							class="absolute inset-0 -z-10 rounded-xl bg-gradient-to-r from-blue-500/5 to-purple-500/5 opacity-0
+																																					transition-opacity duration-300 group-hover:opacity-100"
+						></div>
+						<CategoryGroup
+							category={{
+								id: categoryId,
+								name: categoryId.charAt(0).toUpperCase() + categoryId.slice(1)
+							}}
+							engines={$engines.filter((e) => e.categories.includes(categoryId))}
+							{activeEngines}
+							onToggleEngine={(engineId) => {
+								const engine = $engines.find((e) => e.id === engineId);
+								if (engine) addEngineCommand(engine.name);
+							}}
+						/>
+					</div>
 				{/each}
+
+				<!-- Uncategorized engines -->
+				{#if $engines.some((e) => e.categories.length === 0)}
+					<div class="group relative">
+						<div
+							class="absolute inset-0 -z-10 rounded-xl bg-gradient-to-r from-blue-500/5 to-purple-500/5 opacity-0
+																																		transition-opacity duration-300 group-hover:opacity-100"
+						></div>
+						<CategoryGroup
+							category={{ id: 'uncategorized', name: 'Uncategorized' }}
+							engines={$engines.filter((e) => e.categories.length === 0)}
+							{activeEngines}
+							onToggleEngine={(engineId) => {
+								const engine = $engines.find((e) => e.id === engineId);
+								if (engine) addEngineCommand(engine.name);
+							}}
+						/>
+					</div>
+				{/if}
 			</div>
 		</div>
 	</main>

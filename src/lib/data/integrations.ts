@@ -4,7 +4,6 @@ export const AVAILABLE_INTEGRATIONS = [
 		id: 'google',
 		name: 'Google',
 		url: 'https://www.google.com/search?q=%QUERY%',
-		shortcut: 'g',
 		categories: ['general'],
 		icon: 'https://www.google.com/favicon.ico'
 	},
@@ -12,15 +11,73 @@ export const AVAILABLE_INTEGRATIONS = [
 		id: 'bing',
 		name: 'Bing',
 		url: 'https://www.bing.com/search?q=%QUERY%',
-		shortcut: 'b',
 		categories: ['general']
 	},
 	{
 		id: 'duckduckgo',
 		name: 'DuckDuckGo',
 		url: 'https://duckduckgo.com/?q=%QUERY%',
-		shortcut: 'd',
 		categories: ['general']
+	},
+
+	// Social Media
+	{
+		id: 'x',
+		name: 'X',
+		url: 'https://twitter.com/search?q=%QUERY%',
+		categories: ['social']
+	},
+	{
+		id: 'facebook',
+		name: 'Facebook',
+		url: 'https://www.facebook.com/search/top?q=%QUERY%',
+		categories: ['social']
+	},
+	{
+		id: 'instagram',
+		name: 'Instagram',
+		url: 'https://www.instagram.com/explore/tags/%QUERY%',
+		categories: ['social']
+	},
+	{
+		id: 'linkedin',
+		name: 'LinkedIn',
+		url: 'https://www.linkedin.com/search/results/all/?keywords=%QUERY%',
+		categories: ['social']
+	},
+
+	// Entertainment
+	{
+		id: 'youtube',
+		name: 'YouTube',
+		url: 'https://www.youtube.com/results?search_query=%QUERY%',
+		categories: ['video', 'entertainment']
+	},
+	{
+		id: 'spotify',
+		name: 'Spotify',
+		url: 'https://open.spotify.com/search/%QUERY%',
+		categories: ['entertainment']
+	},
+	{
+		id: 'vimeo',
+		name: 'Vimeo',
+		url: 'https://vimeo.com/search?q=%QUERY%',
+		categories: ['video']
+	},
+
+	// Shopping
+	{
+		id: 'amazon',
+		name: 'Amazon',
+		url: 'https://www.amazon.com/s?k=%QUERY%',
+		categories: ['shopping']
+	},
+	{
+		id: 'mercadolibre',
+		name: 'MercadoLibre',
+		url: 'https://listado.mercadolibre.com.ar/%QUERY%',
+		categories: ['shopping']
 	},
 
 	// AI Tools
@@ -28,21 +85,18 @@ export const AVAILABLE_INTEGRATIONS = [
 		id: 'perplexity',
 		name: 'Perplexity',
 		url: 'https://www.perplexity.ai/?q=%QUERY%',
-		shortcut: 'p',
 		categories: ['ai']
 	},
 	{
 		id: 'chatgpt',
 		name: 'ChatGPT',
 		url: 'https://chat.openai.com/?q=%QUERY%',
-		shortcut: 'c',
 		categories: ['ai']
 	},
 	{
 		id: 'claude',
 		name: 'Claude',
 		url: 'https://claude.ai/new?q=message=%QUERY%',
-		shortcut: 'l',
 		categories: ['ai']
 	},
 	{
@@ -57,21 +111,18 @@ export const AVAILABLE_INTEGRATIONS = [
 		id: 'github',
 		name: 'GitHub',
 		url: 'https://github.com/search?q=%QUERY%',
-		shortcut: 'h',
 		categories: ['dev']
 	},
 	{
 		id: 'stackoverflow',
 		name: 'Stack Overflow',
 		url: 'https://stackoverflow.com/search?q=%QUERY%',
-		shortcut: 's',
 		categories: ['dev']
 	},
 	{
 		id: 'mdn',
 		name: 'MDN Docs',
 		url: 'https://developer.mozilla.org/en-US/search?q=%QUERY%',
-		shortcut: 'm',
 		categories: ['dev', 'docs']
 	},
 	{
@@ -86,7 +137,6 @@ export const AVAILABLE_INTEGRATIONS = [
 		id: 'npm',
 		name: 'npm',
 		url: 'https://www.npmjs.com/search?q=%QUERY%',
-		shortcut: 'n',
 		categories: ['dev', 'docs']
 	},
 	{
@@ -121,7 +171,6 @@ export const AVAILABLE_INTEGRATIONS = [
 		id: 'reddit',
 		name: 'Reddit',
 		url: 'https://www.reddit.com/search/?q=%QUERY%',
-		shortcut: 'r',
 		categories: ['community']
 	},
 	{
@@ -149,21 +198,6 @@ export const AVAILABLE_INTEGRATIONS = [
 		name: 'Behance',
 		url: 'https://www.behance.net/search?search=%QUERY%',
 		categories: ['design']
-	},
-
-	// Video
-	{
-		id: 'youtube',
-		name: 'YouTube',
-		url: 'https://www.youtube.com/results?search_query=%QUERY%',
-		shortcut: 'y',
-		categories: ['video']
-	},
-	{
-		id: 'vimeo',
-		name: 'Vimeo',
-		url: 'https://vimeo.com/search?q=%QUERY%',
-		categories: ['video']
 	}
 ] as const;
 
