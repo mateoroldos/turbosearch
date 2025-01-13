@@ -157,13 +157,7 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-<div class="relative min-h-screen bg-[#FAFAFA] dark:bg-gray-950">
-	<!-- Grid pattern background -->
-	<div class="pointer-events-none absolute inset-0 overflow-hidden">
-		<div class="bg-grid-pattern absolute inset-0 opacity-[0.03] dark:opacity-[0.07]" />
-		<div class="absolute inset-0 bg-gradient-to-b from-transparent via-blue-500/5 to-transparent" />
-	</div>
-
+<div class="relative min-h-screen bg-gray-50 dark:bg-gray-800">
 	<main class="container relative mx-auto max-w-3xl px-4 py-16">
 		<!-- Header -->
 		<div class="mb-16 text-center">
@@ -172,7 +166,7 @@
 					<div class="h-full w-full rounded-full bg-blue-500/20" />
 				</div>
 				<h1
-					class="relative mb-3 text-5xl font-semibold tracking-tighter text-gray-900 dark:text-white"
+					class="relative mb-3 text-4xl font-semibold tracking-tighter text-gray-900 dark:text-white"
 				>
 					Turbo<span class="text-primary">Search</span>
 				</h1>
@@ -181,10 +175,7 @@
 		</div>
 
 		<!-- Search -->
-		<div class="relative">
-			<div class="absolute inset-0 -z-10 animate-pulse blur-3xl">
-				<div class="h-full w-full rounded-3xl bg-blue-500/10" />
-			</div>
+		<div class="sticky top-28 z-10">
 			<SearchBar
 				bind:this={searchBarComponent}
 				bind:query
@@ -231,24 +222,3 @@
 		</div>
 	</main>
 </div>
-
-<style>
-	.bg-grid-pattern {
-		background-image: radial-gradient(
-			circle at center,
-			theme(colors.blue.500) 0.5px,
-			transparent 0.5px
-		);
-		background-size: 24px 24px;
-		animation: gridFloat 30s linear infinite;
-	}
-
-	@keyframes gridFloat {
-		0% {
-			background-position: 0 0;
-		}
-		100% {
-			background-position: 24px 24px;
-		}
-	}
-</style>
