@@ -3,6 +3,7 @@
 	import EnginesGroup from '$lib/components/EnginesGroup.svelte';
 	import { engines, categories, generalShortcuts } from '$lib/stores';
 	import { onMount } from 'svelte';
+	import { AVAILABLE_INTEGRATIONS } from '$lib/data/integrations';
 
 	// Local state
 	let query = '';
@@ -59,21 +60,55 @@
 			clearTimeout(searchTimeout);
 		}
 
-		// Extract commands and search terms, preserving the original spacing in search terms
+		// Extract commands and search terms
 		const parts = query.split(' ');
 		const searchTerms = parts
 			.filter((part) => !part.startsWith('@') && !part.startsWith('#'))
 			.join(' ')
 			.trim();
 
-		if (!searchTerms || activeEngines.length === 0) {
-			return;
-		}
+		if (!searchTerms) return;
+
+		// Get selected engine names from commands
+		const selectedEngineNames = commands
+			.filter((cmd) => cmd.startsWith('@'))
+			.map((cmd) => cmd.slice(1).toLowerCase().replace(/-/g, ' '));
+
+		// Get selected categories from commands
+		const selectedCategories = commands
+			.filter((cmd) => cmd.startsWith('#'))
+			.map((cmd) => cmd.slice(1).toLowerCase().replace(/-/g, ' '));
+
+		if (selectedEngineNames.length === 0 && selectedCategories.length === 0) return;
 
 		if (isSearching) return;
 		isSearching = true;
 
-		const searchEngines = $engines.filter((engine) => activeEngines.includes(engine.id));
+		// Get engines from both saved and available sources
+		const searchEngines = [
+			// Get saved engines
+			...$engines.filter((engine) => {
+				const matchesEngine = selectedEngineNames.some(
+					(name) => engine.name.toLowerCase() === name.toLowerCase()
+				);
+				const matchesGroup = engine.categories.some((cat) =>
+					selectedCategories.some(
+						(selected) =>
+							$categories.find((c) => c.name.toLowerCase() === selected.toLowerCase())?.id === cat
+					)
+				);
+				return matchesEngine || matchesGroup;
+			}),
+			// Get available (not saved) engines
+			...AVAILABLE_INTEGRATIONS.filter((engine) =>
+				// Only include if it's selected and not already in saved engines
+				selectedEngineNames.some(
+					(name) =>
+						engine.name.toLowerCase() === name.toLowerCase() &&
+						!$engines.some((e) => e.id === engine.id)
+				)
+			)
+		];
 
 		searchTimeout = setTimeout(() => {
 			searchEngines.forEach((engine) => {
