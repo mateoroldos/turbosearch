@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { fade } from 'svelte/transition';
 	import SearchBar from '$lib/components/SearchBar.svelte';
 	import CategoryGroup from '$lib/components/CategoryGroup.svelte';
 	import {
@@ -12,8 +11,6 @@
 	// Local state
 	let query = '';
 	let searchBarComponent: any;
-	let showShortcutHint = false;
-	let lastShortcut = '';
 	let selectedEngineIndex = -1;
 	let isSearching = false;
 
@@ -56,10 +53,17 @@
 		return $engines.some((e) => e.categories.includes(categoryId));
 	}
 
+	let searchTimeout: NodeJS.Timeout;
+
 	function search() {
 		if (!query.trim() || isSearching) return;
 
-		// Extract commands and search terms in a more flexible way
+		// Clear any pending search
+		if (searchTimeout) {
+			clearTimeout(searchTimeout);
+		}
+
+		// Extract commands and search terms
 		const parts = query.split(' ');
 		const searchTerms = parts
 			.filter((part) => !part.startsWith('@') && !part.startsWith('#'))
@@ -75,18 +79,25 @@
 			return;
 		}
 
+		// Prevent multiple searches
+		if (isSearching) return;
 		isSearching = true;
 
 		// Get unique engines from both selections
 		const searchEngines = $engines.filter((engine) => activeEngines.includes(engine.id));
 
-		// Perform searches
-		searchEngines.forEach((engine) => {
-			const searchUrl = engine.url.replace('%QUERY%', encodeURIComponent(searchTerms));
-			window.open(searchUrl, '_blank');
-		});
+		// Use timeout to prevent double execution
+		searchTimeout = setTimeout(() => {
+			// Perform searches
+			searchEngines.forEach((engine) => {
+				const searchUrl = engine.url.replace('%QUERY%', encodeURIComponent(searchTerms));
+				window.open(searchUrl, '_blank');
+			});
 
-		isSearching = false;
+			// Reset state
+			isSearching = false;
+			searchTimeout = undefined;
+		}, 100);
 	}
 
 	function toggleEngine(id: string) {
